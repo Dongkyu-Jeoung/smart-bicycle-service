@@ -1,0 +1,9 @@
+fastapi
+uvicorn 
+sqlalchemy
+pymysql
+pydantic
+dotenv
+passlib
+bcrypt==4.0.1  # ✨passlib 1.7.x 버전은 bcrypt 4.x 버전과 호환됨
+python-jose

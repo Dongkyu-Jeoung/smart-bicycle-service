@@ -6,7 +6,6 @@ import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import { useAuth } from "../../context/AuthContext";
 import { ROUTES } from "../../constants/routes";
-import { axiosPost, axiosGet } from '../../utils/dataFetch.js';
 
 const RIDING_STYLES = ["로드", "MTB", "그래벨", "투어링", "도심 라이딩"];
 const CHECKLIST = [
@@ -59,19 +58,9 @@ export default function Signup() {
     e.preventDefault();
     if (!validate()) return;
     setIsSubmitting(true);
-
-    const fastForm = {
-      "nickname": form.nickname,
-      "pwd": form.password,
-      "email": form.email,
-      "ridingStyles": form.ridingStyles,
-      "agreeMarketing": form.agreeMarketing,
-      "agreeRequired": form.agreeRequired
-    }
-
     try {
-      const result = await axiosPost('/api/member/signup', fastForm);
-      if (result.isSignup) navigate(ROUTES.LOGIN);
+      await signup(form);
+      navigate(ROUTES.DASHBOARD);
     } finally {
       setIsSubmitting(false);
     }

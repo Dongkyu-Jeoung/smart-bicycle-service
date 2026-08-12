@@ -7,7 +7,6 @@ import Button from "../../components/common/Button";
 import { useAuth } from "../../context/AuthContext";
 import { ROUTES } from "../../constants/routes";
 import { HOME_STATS } from "../../constants/mockData";
-import { axiosPost, axiosGet } from '../../utils/dataFetch.js';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -33,16 +32,9 @@ export default function Login() {
     e.preventDefault();
     if (!validate()) return;
     setIsSubmitting(true);
-
-    const fastForm = {
-      "email": form.email,
-      "pwd": form.password,
-      "keepLoggedIn": form.keepLoggedIn
-    }
-
     try {
-      const result = await axiosPost('/api/member/login', fastForm);
-      (result.isLogin) ? navigate(ROUTES.DASHBOARD) : alert('틀림')
+      await login(form);
+      navigate(ROUTES.DASHBOARD);
     } finally {
       setIsSubmitting(false);
     }

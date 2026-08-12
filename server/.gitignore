@@ -1,0 +1,4 @@
+# Python
+.env
+.venv
+.venv/__pychache__
