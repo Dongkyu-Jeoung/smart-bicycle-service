@@ -8,13 +8,13 @@ const MOCK_USER = {
 };
 
 // 향후 FastAPI: POST /api/auth/login
-async function login({ email, password }) {
-  try {
-    const { data } = await api.post("/auth/login", { email, password });
-    return data;
-  } catch {
-    return { accessToken: "mock-access-token", user: MOCK_USER };
-  }
+async function login({ email, pwd, keepLoggedIn }) {
+  const { data } = await api.post("/auth/login", { 
+    email: email, 
+    pwd: pwd, 
+    keepLoggedIn: keepLoggedIn || false
+  });
+  return data;
 }
 
 // 향후 FastAPI: POST /api/auth/signup

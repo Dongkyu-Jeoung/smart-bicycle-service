@@ -41,7 +41,7 @@ export default function Login() {
     }
 
     try {
-      const result = await axiosPost('/api/member/login', fastForm);
+      const result = await login(fastForm);
       (result.isLogin) ? navigate(ROUTES.DASHBOARD) : alert('틀림')
     } finally {
       setIsSubmitting(false);

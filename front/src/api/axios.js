@@ -3,6 +3,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "http://localhost:8000/api",
   timeout: 10000,
+  withCredentials: true
 });
 
 // 향후 FastAPI JWT 인증 연동 지점 — localStorage에 저장된 accessToken을 자동 첨부

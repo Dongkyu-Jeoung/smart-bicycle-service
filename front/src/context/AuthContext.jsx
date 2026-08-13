@@ -4,13 +4,29 @@ import authService from "../services/authService";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // 새로고침해도 localStorage에서 유저 정보와 인증 상태를 복원
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("pedalup_user");
+    return saved ? JSON.parse(saved) : null;
+  });
+  
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem("pedalup_access_token");
+  });
 
   const applySession = useCallback(({ accessToken, user: nextUser }) => {
     localStorage.setItem("pedalup_access_token", accessToken);
+    localStorage.setItem("pedalup_user", JSON.stringify(nextUser)); // 유저 정보도 저장
     setUser(nextUser);
     setIsAuthenticated(true);
+  }, []);
+
+  const logout = useCallback(() => {
+    authService.logout();
+    localStorage.removeItem("pedalup_user"); // 로그아웃 시 함께 삭제
+    localStorage.removeItem("pedalup_access_token");
+    setUser(null);
+    setIsAuthenticated(false);
   }, []);
 
   const login = useCallback(
@@ -42,12 +58,6 @@ export function AuthProvider({ children }) {
     applySession(session);
     return session;
   }, [applySession]);
-
-  const logout = useCallback(() => {
-    authService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
-  }, []);
 
   return (
     <AuthContext.Provider

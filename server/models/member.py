@@ -1,4 +1,4 @@
-from sqlalchemy import String, Enum, DateTime, JSON, Boolean
+from sqlalchemy import String, Enum, DateTime, JSON, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from database.connection import Base
 from datetime import datetime, timezone
@@ -32,4 +32,9 @@ class MemberModel(Base):
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    role: Mapped[str] = mapped_column(   
+        String(20),
+        nullable=False,
+        default="user"
     )

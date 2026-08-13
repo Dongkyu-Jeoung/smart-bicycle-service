@@ -1,8 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+//import { ChevronLeft } from "lucide-react";
 import Logo from "../common/Logo";
 import Button from "../common/Button";
 import { ROUTES } from "../../constants/routes";
+import { useAuth } from "../../context/AuthContext"; // 👈 AuthContext 불러오기
+import { ChevronLeft, Bell, LogOut } from "lucide-react"; // 👈 Bell과 LogOut 추가
+
 
 const NAV_ITEMS = [
   { label: "라이딩 시작", to: ROUTES.RIDING_START },
@@ -13,6 +16,13 @@ const NAV_ITEMS = [
 
 export default function PublicHeader({ backTo, backLabel, centerLabel, showNav = false, showAuthActions = true }) {
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth(); // 👈 로그인 상태와 유저 정보, 로그아웃 가져오기
+
+  // 💡 handleLogout 함수 정의
+  const handleLogout = () => {
+    logout();
+    navigate(ROUTES.HOME);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/95 backdrop-blur">
@@ -46,7 +56,27 @@ export default function PublicHeader({ backTo, backLabel, centerLabel, showNav =
           </nav>
         )}
 
-        {showAuthActions ? (
+        {/* 💡 핵심: showAuthActions props에만 의존하지 않고, 로그인 상태(isAuthenticated)를 최우선으로 체크 */}
+        {isAuthenticated ? (
+          <div className="flex items-center gap-5">
+            <button className="relative text-gray-400 hover:text-white" aria-label="알림">
+              <Bell className="h-5 w-5" />
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-neon" />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neon text-sm font-bold text-black">
+                {user?.nickname?.[0] || "P"}
+              </span>
+              <span className="hidden text-sm font-medium text-white sm:block">
+                {user?.nickname || "라이더"}
+              </span>
+            </div>
+            <button onClick={handleLogout} className="flex items-center gap-1 text-sm text-gray-400 hover:text-white">
+              <LogOut className="h-4 w-4" />
+              로그아웃
+            </button>
+          </div>
+        ) : showAuthActions ? (
           <div className="flex items-center gap-4">
             <Link to={ROUTES.LOGIN} className="hidden text-sm text-gray-300 hover:text-white sm:block">
               로그인

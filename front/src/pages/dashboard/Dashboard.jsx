@@ -14,7 +14,7 @@ import { ROUTES } from "../../constants/routes";
 const ACTIVITY_TABS = ["전체 현황", "최근 라이딩", "챌린지"];
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState(ACTIVITY_TABS[0]);
 
