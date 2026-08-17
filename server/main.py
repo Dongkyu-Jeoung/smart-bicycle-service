@@ -2,11 +2,12 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes.auth import router as auth_router
+#from routes.auth import router as auth_router
+from routes.ai import router as ai_router
 from database.connection import engine, Base
 
 # DB의 테이블 확인 및 생성
-Base.metadata.create_all(bind=engine)
+#Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -23,4 +24,5 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(auth_router, prefix="/api/auth", tags=["auth"])   
+#app.include_router(auth_router, prefix="/auth", tags=["auth"])   
+app.include_router(ai_router, prefix="/ai", tags=["ai"])   

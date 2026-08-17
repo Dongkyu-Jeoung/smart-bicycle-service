@@ -83,6 +83,7 @@ export default function DemandForecast() {
     setErrorMessage("");
     setPendingRequest(null);
     try {
+      console.log(payload);
       const data = await publicBikeService.getForecast(payload);
       setResult(data);
       setResultOpen(true);
