@@ -21,6 +21,7 @@ export default function PublicBikeHome() {
 
   if (!routes) return <Loading />;
 
+  // routes의 첫번째 요소를 featured에 할당, 나머지를 rest로 받음
   const [featured, ...rest] = routes;
 
   return (

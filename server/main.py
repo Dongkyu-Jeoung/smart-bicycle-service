@@ -4,10 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 #from routes.auth import router as auth_router
 from routes.ai import router as ai_router
+from routes.bike import router as bike_router
+from routes.chat import router as chat_router
 from database.connection import engine, Base
 
 # DB의 테이블 확인 및 생성
-#Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -25,4 +27,6 @@ app.add_middleware(
 )
 
 #app.include_router(auth_router, prefix="/auth", tags=["auth"])   
-app.include_router(ai_router, prefix="/ai", tags=["ai"])   
+app.include_router(ai_router, prefix="/api/ai/bike", tags=["ai"])   
+app.include_router(bike_router, prefix="/api/bike/seoul", tags=["bike"])   
+app.include_router(chat_router, prefix="/api/chat", tags=["chatbot"])   

@@ -17,6 +17,7 @@ async function getSummary() {
     const { data } = await api.get("/bike/seoul/summary");
     return data;
   } catch {
+    console.log('목데이터에요~~~');
     return BIKE_HERO_STATS;
   }
 }
