@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from schemas.bikeforecast import BikeForecastRequest
+from schemas.bikeforecast import RentalPredictionPayload, DemandPredictionResponse
 
 
 router = APIRouter()
@@ -15,7 +15,7 @@ router = APIRouter()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 모델 경로 설정 (forecast :: 수요예측)
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "ai", "model", "bike_demand_model.pkl")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "ai", "model", "bike_demand_rf_model.pkl")
 
 # CSV 파일 경로 설정 :: 월별 이용추이 / 인기대여소 TOP6에 사용
 FILE_PATH_1 = os.path.join(BASE_DIR, "data", "bike_monthly_25.1-6.csv")
@@ -81,12 +81,13 @@ AI_INSIGHTS = [
   },
 ]
 
-# 모델 파일 로드
+# 모델 불러오기
 try:
-    model = joblib.load(MODEL_PATH)
+    model_bundle = joblib.load(MODEL_PATH)
+    model = model_bundle["model"]
 except Exception as e:
-    print(f"⚠️ 모델 로드 실패: {e}")
     model = None
+    print(f"모델 로드 실패: {e}")
 
 
 # 25년 따릉이 월별 데이터(csv) 호출해서 월별 이용추이 / 인기대여소 TOP6 가공 함수
@@ -209,55 +210,68 @@ except Exception as e:
 
 
 # bike 수요 예측
-@router.post("/forecast")
-async def bike_forecast(payload : BikeForecastRequest) -> dict:
+@router.post("/forecast", response_model=DemandPredictionResponse)
+async def bike_forecast(payload: RentalPredictionPayload) -> dict:
     if model is None:
-        raise HTTPException(status_code=500, detail="모델이 로드되지 않았습니다.")
+        raise HTTPException(
+            status_code=500, detail="모델이 로드되지 않았습니다."
+        )
 
-    try:
-        # Pydantic 객체를 딕셔너리로 변환 후 DataFrame 생성
-        raw_dict = payload.model_dump()
-        df = pd.DataFrame([raw_dict])
+    print(payload)
 
-        # 학습 때와 동일한 전처리 수행
-        date_series = pd.to_datetime(df['date'])
-        df['month'] = date_series.dt.month
-        df['dayofweek'] = date_series.dt.dayofweek
-        df['is_weekend'] = df['dayofweek'].isin([5, 6]).astype(int)
+    # 1. date 파싱 및 파생 피처 추출
+    parsed_date = pd.to_datetime(payload.date)
+    month = parsed_date.month
+    day = parsed_date.day
+    dayofweek = parsed_date.dayofweek
+    is_weekend = 1 if dayofweek >= 5 else 0
 
-        # boolean -> int 변환 / 모델 feature 명과 동일하게 설정
-        df['holiday'] = df['is_holiday'].astype(int)
-
-        # 학습 시 사용했던 순서 그대로 피처 컬럼 정렬
-        FEATURE_COLUMNS = [
-            'hour', 
-            'temperature', 
-            'humidity', 
-            'wind_speed', 
-            'rainfall', 
-            'holiday', 
-            'month', 
-            'dayofweek', 
-            'is_weekend'
+    # 3. 모델 입력 입력 데이터 프레임 생성
+    input_data = pd.DataFrame(
+        [
+            {
+                "month": month,
+                "day": day,
+                "dayofweek": dayofweek,
+                "is_weekend": is_weekend,
+                "hour": payload.hour,
+                "temperature": payload.temperature,
+                "humidity": payload.humidity,
+                "rainfall": payload.rainfall,
+                "windSpeed": payload.wind_speed,
+            }
         ]
+    )
 
-        X = df[FEATURE_COLUMNS]
+    # 4. 예측 실행
+    pred_val = model.predict(input_data)[0]
+    predicted_demand = round(max(0, float(pred_val)), 0)
 
-        print(X.head())
-        # 모델 예측
-        prediction = model.predict(X)
-        
-        # 음수가 나올 수 있는 회귀 모델 특성 방지 (대여량 최소 0)
-        predicted_value = max(0, int(round(prediction[0])))
+    # 5. demand_level 판정 (수요량 기준 임계값 예시: 낮음 < 5, 보통 5~15, 높음 > 15)
+    # 실제 운영 환경에 맞춰 임계값을 조정할 수 있습니다.
+    if predicted_demand >= 15.0:
+        demand_level = "높음"
+    elif predicted_demand >= 5.0:
+        demand_level = "보통"
+    else:
+        demand_level = "낮음"
 
-        return {
-            "status": "success",
-            "predicted_demand": predicted_value,
-            "demand_level" : "높음"
-        }
+    # 6. shortage_risk 및 message 설정
+    shortage_risk = True if demand_level == "높음" else False
 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"예측 처리 실패: {str(e)}")
+    if demand_level == "높음":
+        message = "해당 시간대 수요가 매우 높습니다. 인근 대여소 재배치를 권장합니다."
+    elif demand_level == "보통":
+        message = "해당 시간대 수요가 보통 수준입니다. 현재 대여소 운영을 유지해도 좋습니다."
+    else:
+        message = "해당 시간대 수요가 낮습니다. 자전거 재배치가 필요하지 않습니다."
+
+    return DemandPredictionResponse(
+        predicted_demand=predicted_demand,
+        demand_level=demand_level,
+        shortage_risk=shortage_risk,
+        message=message,
+    )
 
 
 # ---------------------------------------------------------------------------------

@@ -1,19 +1,26 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel
 from datetime import date
 
-class BikeForecastRequest(BaseModel):
-    station_id: int = Field(..., alias="stationId")
-    date: date
+# 프론트엔드 Payload 스키마 정의
+class RentalPredictionPayload(BaseModel):
+    station_id: int | str
+    date: date  
     hour: int
-    is_holiday: bool = Field(..., alias="isHoliday")
+    is_holiday: int  
     temperature: float
     humidity: float
     rainfall: float
-    wind_speed: float = Field(..., alias="windSpeed")
-    recent_hourly_rentals: int = Field(..., alias="recentHourlyRentals")
-    prev_day_same_hour_rentals: int = Field(..., alias="prevDaySameHourRentals")
-    rolling_7d_same_hour_avg: float = Field(..., alias="rolling7dSameHourAvg")
+    wind_speed: float
 
-    model_config = ConfigDict(
-        populate_by_name=True,  # 스네이크케이스나 알리아스 이름 모두 허용
-    )
+    # 모델 학습에는 미사용 (선택적 수신 처리)
+    recent_1h_rental_count: float | None = None
+    prev_day_same_hour_rental_count: float | None = None
+    rolling_7d_same_hour_avg: float | None = None
+
+
+# 응답 스키마 정의
+class DemandPredictionResponse(BaseModel):
+    predicted_demand: float
+    demand_level: str
+    shortage_risk: bool
+    message: str
