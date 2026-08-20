@@ -243,6 +243,7 @@ async def bike_forecast(payload : BikeForecastRequest) -> dict:
 
         X = df[FEATURE_COLUMNS]
 
+        print(X.head())
         # 모델 예측
         prediction = model.predict(X)
         
@@ -251,7 +252,8 @@ async def bike_forecast(payload : BikeForecastRequest) -> dict:
 
         return {
             "status": "success",
-            "predicted_rentals": predicted_value
+            "predicted_demand": predicted_value,
+            "demand_level" : "높음"
         }
 
     except Exception as e:

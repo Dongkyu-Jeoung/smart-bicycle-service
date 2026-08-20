@@ -1,4 +1,4 @@
-from sqlalchemy import String, Enum, DateTime, JSON, Boolean, ForeignKey
+from sqlalchemy import String, Enum, DateTime, JSON, Boolean, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 from database.connection import Base
 from datetime import datetime, timezone
@@ -6,9 +6,14 @@ from datetime import datetime, timezone
 class MemberModel(Base):
     __tablename__ = "member"
 
+    id: Mapped[int] = mapped_column(
+        Integer, 
+        primary_key=True, 
+        autoincrement=True
+    )
     nickname: Mapped[str] = mapped_column(
-        String(50), 
-        primary_key=True
+        String(50),
+        nullable=False
     )
     pwd: Mapped[str] = mapped_column(
         String(255),

@@ -22,7 +22,7 @@ async def signup(memberItem : MemberItem, db : Session = Depends(get_db)) -> dic
     # 1. models.MemberModel에 memberItem 저장
     memberModel = MemberModel(
         nickname = memberItem.nickname,
-        pwd = hash_password(memberItem.pwd),
+        pwd = hash_password(memberItem.password),
         email = memberItem.email,
         ridingStyles = memberItem.ridingStyles,
         agreeMarketing = memberItem.agreeMarketing,
@@ -34,22 +34,29 @@ async def signup(memberItem : MemberItem, db : Session = Depends(get_db)) -> dic
 
     # 3. commit
     db.commit()
+    db.refresh(memberModel)
 
     return {
-        "isSignup": True
+        "accessToken": "mock-access-token",
+        "user" : {
+            "id" : memberModel.id,
+            "nickname" : memberModel.nickname,
+            "handle" : f"@{memberModel.nickname}_rides",
+            "email" : memberModel.email
+        }
     }
 
 # 로그인
 @router.post("/login")
 async def login(memberLogin: MemberLogin, response : Response,db: Session = Depends(get_db)) -> dict:
-    # 1. id를 통해 DB 데이터 가져오기
+    print(memberLogin.email)
+    # 1. email를 통해 DB 데이터 가져오기
     stmt = select(MemberModel).where(MemberModel.email == memberLogin.email)
     member = db.scalars(stmt).first()
 
     # 2. 없으면 : 에러 메시지 리턴
-    if member is None or not verify_password(memberLogin.pwd, member.pwd):
+    if member is None or not verify_password(memberLogin.password, member.pwd):
         return {
-            "isLogin": False,
             "accessToken": None,
             "user": None
         }
@@ -75,12 +82,12 @@ async def login(memberLogin: MemberLogin, response : Response,db: Session = Depe
         )
 
     return {
-        "isLogin": True,
         "accessToken": access_token,
         "user": {
+            "id" : member.id,
             "nickname": member.nickname,
-            "email": member.email,
-            "role": member.role
+            "handle": f"@{member.nickname}_rides",
+            "email": member.email
         }
     }
 
