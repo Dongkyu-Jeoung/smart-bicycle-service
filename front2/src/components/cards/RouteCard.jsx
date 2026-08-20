@@ -6,6 +6,8 @@ import { ROUTES } from "../../constants/routes";
 import { tagBadgeVariant } from "../../utils/tagBadge";
 
 function StationRow({ label, station }) {
+  if (!station || typeof station !== "object") return null
+  
   const ratio = station.total ? Math.min(100, (station.available / station.total) * 100) : 0;
   const low = ratio <= 20;
   return (

@@ -23,14 +23,13 @@ export default function PersonalBikeHome() {
   }, []);
 
   const featured = useMemo(() => routes?.find((r) => r.tags?.includes("오늘의 추천")), [routes]);
-
   const filtered = useMemo(() => {
     if (!routes) return [];
     const keyword = search.trim().toLowerCase();
     return routes
       .filter((r) => r.id !== featured?.id)
-      .filter((r) => region === "전체" || r.regionTag === region)
-      .filter((r) => type === "전체" || r.bikeType === type)
+      .filter((r) => region === "전체" || r.region_tag === region)
+      .filter((r) => type === "전체" || r.bike_type === type)
       .filter((r) => difficulty === "전체" || r.difficulty === difficulty)
       .filter((r) => !keyword || r.name.toLowerCase().includes(keyword) || r.region.toLowerCase().includes(keyword));
   }, [routes, search, region, type, difficulty, featured]);

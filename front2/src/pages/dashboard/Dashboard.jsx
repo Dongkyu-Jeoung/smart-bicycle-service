@@ -71,20 +71,20 @@ export default function Dashboard() {
         <div>
           <p className="mb-4 text-sm font-semibold text-neon">오늘의 AI 추천 루트</p>
           <Link
-            to={ROUTES.routeDetail(data.recommendedRoute.id)}
+            to={ROUTES.routeDetail(data?.recommendedRoute[0].id)}
             className="mb-8 block overflow-hidden rounded-xl border border-border bg-card"
           >
             <div className="relative h-52">
-              <img src={data.recommendedRoute.image} alt={data.recommendedRoute.name} className="h-full w-full object-cover" />
+              <img src={data?.recommendedRoute[0].image} alt={data?.recommendedRoute[0].name} className="h-full w-full object-cover" />
               <Badge variant="cyan" className="absolute left-4 top-4">
                 AI 추천
               </Badge>
             </div>
             <div className="flex items-center justify-between p-5">
               <div>
-                <h3 className="text-lg font-bold text-white">{data.recommendedRoute.name}</h3>
+                <h3 className="text-lg font-bold text-white">{data.recommendedRoute[0].name}</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  {data.recommendedRoute.distance} · {data.recommendedRoute.duration}
+                  {data.recommendedRoute[0].distance} · {data.recommendedRoute[0].duration}
                 </p>
               </div>
               <Button size="sm">출발</Button>
